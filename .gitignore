@@ -1,0 +1,9 @@
+**/.cache
+**/.DS_Store
+**/out
+**/compile_commands.json
+.clangd
+
+ex00/btc
+ex01/RPN
+ex02/

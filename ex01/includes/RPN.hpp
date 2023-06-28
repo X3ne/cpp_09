@@ -6,7 +6,7 @@
 /*   By: abastos <abastos@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/18 18:01:16 by abastos           #+#    #+#             */
-/*   Updated: 2023/05/30 01:11:22 by abastos          ###   ########lyon.fr   */
+/*   Updated: 2023/06/28 12:20:04 by abastos          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,12 +33,14 @@
 #define BOLD(x) "\x1B[1m" x RST
 #define UNDL(x) "\x1B[4m" x RST
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 #include <exception>
 #include <iostream>
 #include <stack>
 #include <string>
+#include <climits>
+#include<cstdlib>
 
 class RPN {
 public:
@@ -48,12 +50,12 @@ public:
 
   RPN &operator=(const RPN &rhs);
 
-  int getResult() const;
+  double getResult() const;
 
 private:
   RPN();
   void _parseOperation(const std::string &operation);
-  int _calculate(char operand);
+  double _calculate(char operand);
 
   std::stack<int> _stack;
 };

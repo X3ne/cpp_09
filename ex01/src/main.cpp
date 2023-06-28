@@ -6,7 +6,7 @@
 /*   By: abastos <abastos@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/30 01:11:24 by abastos           #+#    #+#             */
-/*   Updated: 2023/05/30 01:11:24 by abastos          ###   ########lyon.fr   */
+/*   Updated: 2023/06/27 13:38:16 by abastos          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
   try {
     RPN rpn(argv[1]);
 
-    int result = rpn.getResult();
+    double result = rpn.getResult();
 
     std::cout << FGRN("Result: ") << result << std::endl;
   } catch (std::exception &e) {

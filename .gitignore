@@ -1,3 +1,5 @@
+.vscode/
+
 **/.cache
 **/.DS_Store
 **/out
@@ -6,4 +8,4 @@
 
 ex00/btc
 ex01/RPN
-ex02/
+ex02/PmergeMe

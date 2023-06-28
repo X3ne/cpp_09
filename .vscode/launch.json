@@ -14,6 +14,7 @@
 			"environment": [],
 			"externalConsole": false,
 			"MIMode": "lldb",
+			"miDebuggerPath": "/usr/bin/lldb-mi",
 			"setupCommands": [
 				{
 					"description": "Activer l'impression en mode Pretty pour gdb",
@@ -41,6 +42,7 @@
 			"environment": [],
 			"externalConsole": false,
 			"MIMode": "lldb",
+			"miDebuggerPath": "/usr/bin/lldb-mi",
 			"setupCommands": [
 				{
 					"description": "Activer l'impression en mode Pretty pour gdb",
@@ -54,6 +56,34 @@
 				}
 			],
 			"preLaunchTask": "Build ex01"
+		},
+		{
+			"name": "Launch ex02",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/ex02/PmergeMe",
+			"args": [
+				"9", "1", "7", "3", "8", "1", "5", "7", "4", "9"
+			],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}/ex02/src",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb",
+			"miDebuggerPath": "/usr/bin/lldb-mi",
+			"setupCommands": [
+				{
+					"description": "Activer l'impression en mode Pretty pour gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Définir la version désassemblage sur Intel",
+					"text": "-gdb-set disassembly-flavor intel",
+					"ignoreFailures": true
+				}
+			],
+			"preLaunchTask": "Build ex02"
 		}
 	]
 }

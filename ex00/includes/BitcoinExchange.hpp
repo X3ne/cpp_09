@@ -6,7 +6,7 @@
 /*   By: abastos <abastos@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/18 18:01:16 by abastos           #+#    #+#             */
-/*   Updated: 2023/05/29 17:20:55 by abastos          ###   ########lyon.fr   */
+/*   Updated: 2023/06/28 12:19:57 by abastos          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@
 #define BOLD(x) "\x1B[1m" x RST
 #define UNDL(x) "\x1B[4m" x RST
 
-#define VERBOSE 1
+#define VERBOSE 0
 
 #include <ctime>
 #include <exception>
@@ -42,6 +42,8 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <cstring>
+#include<sstream>
 
 class BitcoinExchange {
 public:
@@ -57,8 +59,6 @@ public:
 
 private:
   std::map<time_t, double> _data;
-  time_t _minDate;
-  time_t _maxDate;
 
   time_t _parseDate(const std::string &date) const;
 };

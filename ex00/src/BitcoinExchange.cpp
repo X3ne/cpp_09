@@ -6,17 +6,25 @@
 /*   By: abastos <abastos@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/30 01:11:06 by abastos           #+#    #+#             */
-/*   Updated: 2023/05/30 01:11:08 by abastos          ###   ########lyon.fr   */
+/*   Updated: 2023/06/28 12:14:49 by abastos          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "BitcoinExchange.hpp"
 
+double stringtod(const std::string &value) {
+  std::stringstream ss;
+  ss << value;
+
+  double d=0.0;
+  ss >> d;
+
+  return d;
+}
+
 BitcoinExchange::BitcoinExchange() {
   if (VERBOSE)
     std::cout << FGRN("BitcoinExchange constructor called") << std::endl;
-  this->_minDate = NULL;
-  this->_maxDate = NULL;
 }
 
 BitcoinExchange::BitcoinExchange(const BitcoinExchange &src) {
@@ -35,21 +43,14 @@ BitcoinExchange &BitcoinExchange::operator=(const BitcoinExchange &rhs) {
     std::cout << "BitcoinExchange assignation operator called" << std::endl;
   if (this != &rhs) {
     this->_data = rhs._data;
-    this->_minDate = rhs._minDate;
-    this->_maxDate = rhs._maxDate;
   }
   return *this;
 }
 
 time_t BitcoinExchange::_parseDate(const std::string &date) const {
-  /**
-   * tm_hour is set to 1 because after conversion a
-   * value of 0 for all values seems to correspond to
-   * the day before.
-   */
-  struct tm tm = {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, nullptr};
-  int arr[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-
+  struct tm tm;
+  std::memset(&tm, 0, sizeof(struct tm));
+  int nDays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
   if (date.length() != 10 || !strptime(date.c_str(), "%Y-%m-%d", &tm))
     throw std::runtime_error("bad input => " + date);
 
@@ -62,9 +63,9 @@ time_t BitcoinExchange::_parseDate(const std::string &date) const {
   int year = tm.tm_year + 1900;
   if (month == 2 &&
       ((year % 400 == 0) || ((year % 100 != 0) && (year % 4 == 0)))) {
-    if (tm.tm_mday > arr[month - 1] + 1)
+    if (tm.tm_mday > nDays[month - 1] + 1)
       throw std::runtime_error("Invalid date format");
-  } else if (tm.tm_mday > arr[month - 1])
+  } else if (tm.tm_mday > nDays[month - 1])
     throw std::runtime_error("Invalid date format");
 
   return dateToTimestamp(tm);
@@ -88,12 +89,7 @@ void BitcoinExchange::loadFile(const std::string &path) {
       time_t date = this->_parseDate(sDate);
       std::string price = line.substr(line.find(',') + 1);
 
-      this->_data.insert(std::pair<time_t, double>(date, std::stod(price)));
-
-      if (!this->_minDate || date < this->_minDate)
-        this->_minDate = date;
-      if (!this->_maxDate || date > this->_maxDate)
-        this->_maxDate = date;
+      this->_data.insert(std::pair<time_t, double>(date, stringtod(price)));
     } catch (std::exception &e) {
       std::cerr << FRED("Error: ") << e.what() << std::endl;
       continue;
@@ -107,14 +103,12 @@ void BitcoinExchange::loadFile(const std::string &path) {
 const double &BitcoinExchange::getRate(const time_t &date) const {
   std::map<time_t, double>::const_iterator it = this->_data.find(date);
 
-  if (date < this->_minDate || date > this->_maxDate)
+  if (date < this->_data.begin()->first)
     throw std::runtime_error("Date out of range");
 
   if (it == this->_data.end()) {
-    for (int i = 0; it == this->_data.end(); i++) {
-      time_t newDate = date - i * 24 * 60 * 60; // remove one day
-      it = this->_data.find(newDate);
-    }
+    it = this->_data.upper_bound(date);
+    it--;
     if (it == this->_data.end())
       throw std::runtime_error("No data for this date");
   }
@@ -124,13 +118,10 @@ const double &BitcoinExchange::getRate(const time_t &date) const {
 void BitcoinExchange::proccessData(const std::string &path) const {
   std::ifstream ifs;
   std::string line;
+  std::string allowed = "0123456789.-";
 
   if (VERBOSE)
     std::cout << FYEL("Process data from file: " + path + "") << std::endl;
-
-  if (path.substr(path.find_last_of(".") + 1) != "txt") {
-    throw std::runtime_error("Invalid file format");
-  }
 
   ifs.open(path.c_str(), std::ifstream::in);
   if (!ifs.is_open() || ifs.bad())
@@ -141,7 +132,13 @@ void BitcoinExchange::proccessData(const std::string &path) const {
     try {
       std::string sDate = line.substr(0, line.find(" | "));
       time_t date = this->_parseDate(trim(sDate));
-      double price = stod(line.substr(line.find(" | ") + 3));
+      std::string priceStr = line.substr(line.find(" | ") + 3);
+
+      if (priceStr.find_first_not_of(allowed) != std::string::npos) {
+        throw std::invalid_argument("not a number");
+      }
+
+      double price = stringtod(priceStr);
 
       if (price > 1000)
         throw std::invalid_argument("too large number");
@@ -149,8 +146,7 @@ void BitcoinExchange::proccessData(const std::string &path) const {
         throw std::invalid_argument("not a positive number");
 
       double dbPrice = this->getRate(date);
-      std::cout << std::put_time(&timestampToDate(date), "%Y-%m-%d") << " => "
-                << price << " = " << price * dbPrice << std::endl;
+      std::cout << sDate << " => " << price << " = " << price * dbPrice << std::endl;
     } catch (std::exception &e) {
       std::cerr << FRED("Error: ") << e.what() << std::endl;
       continue;
@@ -169,11 +165,6 @@ const std::string &trim(std::string &s) {
 }
 
 time_t dateToTimestamp(struct tm &tm) {
-  time_t time = mktime(&tm);
+  time_t time = std::mktime(&tm) - timezone;
   return time;
-}
-
-const struct tm &timestampToDate(const time_t &time) {
-  struct tm *tm = gmtime(&time);
-  return *tm;
 }
